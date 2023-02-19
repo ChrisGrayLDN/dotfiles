@@ -1,0 +1,119 @@
+export GPG_TTY=$(tty)
+################
+#  NAVIGATION  #
+################
+setopt AUTO_CD # Allow mac-like folder switching (no-cd)
+setopt CORRECT # Enable command correction
+
+setopt AUTO_PUSHD
+setopt PUSHD_IGNORE_DUPS
+setopt PUSHD_SILENT
+
+################
+#  ALIASES     #
+################
+source "$CONFIGDIR/zsh/aliases"
+
+################
+#  EVALS       #
+################
+eval "$(starship init zsh)"
+eval "$(thefuck --alias)"
+eval "$(gh completion --shell zsh)"
+
+################
+#  ASDF        #
+################
+#. $(brew --prefix asdf)/asdf.sh
+plugins=(
+	# asdf
+)
+
+################
+#  COMPLETIONS #
+################
+# VIM KEYBINDINGS FOR AUTOCOMPLETE
+zmodload zsh/complist
+bindkey -M menuselect 'h' vi-backward-char
+bindkey -M menuselect 'k' vi-up-line-or-history
+bindkey -M menuselect 'l' vi-forward-char
+bindkey -M menuselect 'j' vi-down-line-or-history
+
+autoload bashcompinit && bashcompinit
+autoload -U compinit
+compinit
+_comp_options+=(globdots)
+complete -C "/usr/local/bin/aws_completer" aws
+source ~/dotfiles/zsh/external/completion.zsh
+source <(kubectl completion zsh)
+
+###-begin-projen-completions-###
+#
+# yargs command completion script
+#
+# Installation: ../../../.asdf/installs/nodejs/18.1.0/.npm/bin/projen completion >> ~/.zshrc
+#    or ../../../.asdf/installs/nodejs/18.1.0/.npm/bin/projen completion >> ~/.zsh_profile on OSX.
+#
+_projen_yargs_completions() {
+	local reply
+	local si=$IFS
+	IFS=$'
+' reply=($(COMP_CWORD="$((CURRENT - 1))" COMP_LINE="$BUFFER" COMP_POINT="$CURSOR" ../../../.asdf/installs/nodejs/18.1.0/.npm/bin/projen --get-yargs-completions "${words[@]}"))
+	IFS=$si
+	_describe 'values' reply
+}
+compdef _projen_yargs_completions projen
+###-end-projen-completions-###
+
+################
+#   VI KEYMAP  #
+################
+bindkey -v
+export KEYTIMEOUT=1
+
+autoload -Uz cursor_mode && cursor_mode
+
+autoload -Uz bd
+autoload -Uz edit-command-line
+autoload -Uz clone_repo
+
+zle -N edit-command-line
+bindkey -M vicmd v edit-command-line
+source $DOTFILES/zsh/scripts.sh
+
+################
+#   FZF        #
+################
+if [ "$(command -v fzf)" ]; then
+	source $CONFIGDIR/fzf/fzf/.fzf.zsh
+fi
+
+############################
+#   SYNTAX HIGHLIGHTING    #
+############################
+source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+########
+# TMUX #
+########
+bindkey -r '^l'
+bindkey -r '^g'
+bindkey -s '^g' clear-screen
+
+# Generated for envman. Do not edit.
+[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /usr/bin/vault vault
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+source /Users/chris/.config/op/plugins.sh
+
+test -e "${ZDOTDIR}/.iterm2_shell_integration.zsh" && source "${ZDOTDIR}/.iterm2_shell_integration.zsh"
+export PATH="/usr/local/opt/openssl@3/bin:$PATH"
+
+echo "File edited"
